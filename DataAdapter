@@ -1,0 +1,56 @@
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+/*
+*This class specifies the details of contact to display in the list.
+* */
+
+public class DataAdapter extends BaseAdapter{
+
+    ArrayList<Contact> contacts ;
+    Context context;
+    DataAdapter( Context context, ArrayList<Contact> contacts)
+    {
+        this.contacts = contacts;
+
+        this.context = context;
+    }
+    //This method displays the size of the list
+    @Override
+    public int getCount() {
+
+        return contacts.size();
+    }
+    //This method returns the position of the contact
+    @Override
+    public Object getItem(int location) {
+        return contacts.get(location);
+    }
+    // This method returns the Id of the item at a particular position
+    @Override
+    public long getItemId(int location) {
+        return 0;
+    }
+
+    /*
+    * This method specify the detail of contact to view in the list.
+    * */
+    @Override
+    public View getView(int location, View convertView, ViewGroup parent) {
+        LayoutInflater inflater = (LayoutInflater)   context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inflater.inflate(R.layout.item_layout, null);
+
+        TextView name = (TextView) view.findViewById(R.id.name);
+        TextView phone = (TextView) view.findViewById(R.id.phone);
+        name.setText(contacts.get(location).getFirstname() +" " + contacts.get(location).getLastname());
+        phone.setText(contacts.get(location).getPhone());
+        return view;
+    }
+
+}
