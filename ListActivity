@@ -1,0 +1,143 @@
+/*
+* This is the Main Activity.
+*
+ * This activity is called first when the app launches.
+ *
+* This Activity displays the list of contacts.
+*
+* */
+
+//Import Classes
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.Toast;
+import java.io.File;
+import java.util.ArrayList;
+
+public class ListActivity extends AppCompatActivity implements ListView.OnItemClickListener {
+
+    int location;//variable for selected location of an item in the list
+    ListView listView;//object of ListView
+    Boolean edit = false;
+    DataAdapter dataAdapter;//object of DataAdapter
+    public Context context;//object of Context
+    private static final File FILE = new File("Contacts3.txt");//File name for storing data in back-end.
+/*
+* onCreate method called on starting activity
+* */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_list);
+        //calling listview for displaying the list
+        listView = (ListView)findViewById(R.id.listView);
+        //setting on click listener true
+        listView.setOnItemClickListener(this);
+        //initializing context
+        context = this;
+        dataAdapter = new DataAdapter(this, (ArrayList<Contact>) FileOperation.fileRead(context));
+        //All contacts displayed as a listview. Set to listview adapter class DataAdapter
+        listView.setAdapter(dataAdapter);
+
+    }
+/*
+* onCreate options menu has add button when ListActivity is called
+* and
+* edit, delete button when an item from list is selected
+* */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        if(edit){
+            getMenuInflater().inflate(R.menu.menu_action, menu);
+        }
+        else{
+            getMenuInflater().inflate(R.menu.menu_list, menu);
+        }
+        return true;
+    }
+/*
+* choices on selecting item on the list.
+* */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        edit = false;
+        final Intent intent = new Intent(this, AddContact.class);
+
+        //noinspection SimplifiableIfStatement
+        /*
+        * when id matches add, new activity for adding the contact is called.
+        * */
+        if (id == R.id.add) {
+            intent.putExtra("id", "add");
+            startActivity(intent);
+        }
+        /*
+        * when id matches edit, in new activity with the content from the list is loaded
+        * */
+        else if(id == R.id.edit){
+            intent.putExtra("id", "edit");
+            intent.putExtra("firstname", dataAdapter.contacts.get(location).getFirstname());
+            intent.putExtra("lastname", dataAdapter.contacts.get(location).getLastname());
+            intent.putExtra("phone", dataAdapter.contacts.get(location).getPhone());
+            intent.putExtra("email", dataAdapter.contacts.get(location).getEmail());
+            intent.putExtra("location", location);
+            startActivity(intent);
+        }
+        /*
+        * when id is delete the item from list is deleted.
+        * */
+        else if (id == R.id.delete){
+            /*
+            * On delete button click, pop an alert dialog box asking whether to continue deleting or not.
+            * */
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(listView.getContext());
+            alertDialog.setTitle("Delete Contact");
+            alertDialog.setMessage("Do you really want to delete this entry?");
+            alertDialog.setPositiveButton("OK", new DialogInterface.OnClickListener()
+            {/*
+            On confirming deletion, delete the record from the file.
+            */
+                public void onClick(DialogInterface dialog, int which) {
+                    String fname = dataAdapter.contacts.get(location).getFirstname();
+                    String lname = dataAdapter.contacts.get(location).getLastname();
+                    String phNo = dataAdapter.contacts.get(location).getPhone();
+                    String eId = dataAdapter.contacts.get(location).getEmail();
+                    FileOperation.deleteRecord(FILE, fname, lname, phNo, eId, context);
+                    Toast.makeText(getBaseContext(), "Contact deleted !", Toast.LENGTH_SHORT).show();
+
+                }
+            });
+            alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    // do nothing
+                }
+            });
+            alertDialog.setIcon(android.R.drawable.ic_dialog_alert);
+            alertDialog.show();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int location, long id){
+        this.location = location;
+        edit = true;
+        invalidateOptionsMenu();
+    }
+}
